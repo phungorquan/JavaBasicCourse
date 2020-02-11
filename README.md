@@ -3,7 +3,7 @@
 
 # How does it work?
 
-
+![](Overview Diagram.png)
 
 # Devices:
 - Led
