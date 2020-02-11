@@ -15,3 +15,6 @@
 - Netbeans 8.2
 - Arduino IDE 1.8.6
 - XAMPP
+
+# Video:
+- https://youtu.be/HyyXwgY-IYc
