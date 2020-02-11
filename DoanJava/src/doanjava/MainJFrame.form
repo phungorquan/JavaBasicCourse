@@ -702,7 +702,7 @@
                   <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jScrollPane2" pref="722" max="32767" attributes="0"/>
+                          <Component id="jScrollPane2" pref="320" max="32767" attributes="0"/>
                           <Component id="Btn_Refresh" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>

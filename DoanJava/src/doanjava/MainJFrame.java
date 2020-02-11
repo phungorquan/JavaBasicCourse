@@ -2,6 +2,7 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ * Shift + F11 to clean and build after add JDBC MySQL driver
  */
 package doanjava;
 
@@ -12,19 +13,91 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.Timer;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author Xiu
  */
 
-public class MainJFrame extends javax.swing.JFrame {
+class DTBFunc
+{
+    public static String Login_Register(String UsrN, String Psw, String Type)
+    {
+         try {
+            Class.forName("com.mysql.jdbc.Driver");
+            //here sonoo is database name, root is username and password
+            try (Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/doanjava", "root", "")) {
+            //here sonoo is database name, root is username and password
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("select * from account");
+                     
+            String Input_UsrN;
+            String Input_Psw;
+            boolean Check_Exist = false;
+            while(rs.next())
+            {
+              Input_UsrN = rs.getString(2);
+              Input_Psw = rs.getString(3);
+              if(UsrN.equals(Input_UsrN))   // If Username match with database
+              {
+                  if(Type.equals("Login"))  // If this is Login type
+                  {
+                    Check_Exist = true;     // Set Exist when match one of Username in database
+                    if(Psw.equals(Input_Psw)) // If Passwork also match
+                        return rs.getString(4); // Return Function of this account
+                    else 
+                        return "WrongPass"; // If not, return Wrongpassword
+                  }
+                  else return "Existed";    // If this is Registered type -> Existed account in database. Need register a new one
+                  
+              }
+            }    
+                if(Check_Exist == false)    // If not exist
+                {
+                    if(Type.equals("Login"))    // If this is type Login. 
+                        return "NotExist";      // Return account Not Exist in database
+                    else return "Successfully"; // Return Registered successfully
+                }
+                  
+            }
+    } catch (ClassNotFoundException | SQLException e) {
+        System.out.println(e);
+    }
+        return "Failed";
+    }
+    
+    public static int Insert_Update_Delete(String req)
+    {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            //here sonoo is database name, root is username and password
+            try (Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/doanjava", "root", "")) {
+            //here sonoo is database name, root is username and password
+            Statement stmt = con.createStatement();
+            int rs = stmt.executeUpdate(req);          // Insert Update or Delete
+            if(rs > 0)  // If success
+                return 1; // Return 1
+            else return 0; // else Return 0
+          
+            }
+    } catch (ClassNotFoundException | SQLException e) {
+        System.out.println(e);
+    }
+        return 0;
+    }
+        
+}
 
+public class MainJFrame extends javax.swing.JFrame {
+    // Create two global model variable for two tables (support to add Row in table)
 public class GlobalModelVariable {
    public DefaultTableModel DHT_Table = (DefaultTableModel) Table_DHT.getModel();
    public DefaultTableModel Account_Table = (DefaultTableModel) Table_Acc.getModel();
 }
-    /**
+/**
      * Creates new form MainJFrame
      * @param type
      * @param req
@@ -45,8 +118,8 @@ public void RequestDTB(String type,String req)
           {
             while (rs.next())
             {
-                TxF_Temperature.setText(Float.toString(rs.getFloat(3)));
-                TxF_Hudmility.setText(Float.toString(rs.getFloat(4)));
+                TxF_Temperature.setText(Float.toString(rs.getFloat(3)));    // Get Temp to display
+                TxF_Hudmility.setText(Float.toString(rs.getFloat(4)));      // Get Hum to display
             }   
           }
           else if(type.equals("Control"))
@@ -57,25 +130,25 @@ public void RequestDTB(String type,String req)
                 {
                     if(rs.getInt(3) == 1)
                     {
-                        Tgl_LED1.setText("ON");
-                        Tgl_LED1.setSelected(true);
+                        Tgl_LED1.setText("ON");         // Display ON Led1
+                        Tgl_LED1.setSelected(true);     
                     }
-                    else if(rs.getInt(3) == 0)
+                    else if(rs.getInt(3) == 0)          
                     {
-                        Tgl_LED1.setText("OFF");
+                        Tgl_LED1.setText("OFF");        // Display OFF Led1
                         Tgl_LED1.setSelected(false);
                     }
                 }
                 else if(rs.getInt(1) == 2)
                 {
                     if(rs.getInt(3) == 1)
-                    {
-                        Tgl_LED2.setText("ON");
+                    {       
+                        Tgl_LED2.setText("ON");         // Display ON Led2
                         Tgl_LED2.setSelected(true);
                     }
                     else if(rs.getInt(3) == 0)
                     {
-                        Tgl_LED2.setText("OFF");
+                        Tgl_LED2.setText("OFF");        // Display OFF Led2
                         Tgl_LED2.setSelected(false);
                     }
                 }
@@ -83,12 +156,12 @@ public void RequestDTB(String type,String req)
                 {
                     if(rs.getInt(3) == 1)
                     {
-                        Tgl_LED3.setText("ON");
+                        Tgl_LED3.setText("ON");         // Display ON Led3
                         Tgl_LED3.setSelected(true);
                     }
                     else if(rs.getInt(3) == 0)
                     {
-                        Tgl_LED3.setText("OFF");
+                        Tgl_LED3.setText("OFF");        // Display OFF Led3
                         Tgl_LED3.setSelected(false);
                     }
                 }
@@ -100,7 +173,8 @@ public void RequestDTB(String type,String req)
               GlobalModelVariable Mytable = new GlobalModelVariable(); 
               Mytable.DHT_Table.setRowCount(1);
               if(rs.next())
-              {
+              {     
+                  // Adđ value to row
                    Table_DHT.getModel().setValueAt(Float.toString(rs.getFloat(2)),0,0); // Value Row Column
                    Table_DHT.getModel().setValueAt(Float.toString(rs.getFloat(3)),0,1); // Value Row Column
                    Table_DHT.getModel().setValueAt(Float.toString(rs.getFloat(4)),0,2); // Value Row Column
@@ -129,7 +203,7 @@ public void RequestDTB(String type,String req)
                    HHum = Float.toString(rs.getFloat(4));
                    LHum = Float.toString(rs.getFloat(5));
                    Date = rs.getString(6);                  
-                   Mytable.DHT_Table.addRow(new Object[]{HTemp, LTemp, HHum, LHum, Date});   
+                   Mytable.DHT_Table.addRow(new Object[]{HTemp, LTemp, HHum, LHum, Date});   // Display history data of DHT22 on table
               }
           }
           else if(type.equals("ListAccount"))
@@ -145,7 +219,7 @@ public void RequestDTB(String type,String req)
                 UsrName = rs.getString(2);
                 Psword = rs.getString(3);
                 Func = rs.getString(4);
-                Mytable.Account_Table.addRow(new Object[]{Id, UsrName, Psword, Func});   
+                Mytable.Account_Table.addRow(new Object[]{Id, UsrName, Psword, Func});   // Display all account on table
             }
           }
 
@@ -154,124 +228,6 @@ public void RequestDTB(String type,String req)
     System.out.println(e);
   }
  }
-
-public void Insert_Update_Delete_DTB(String req, String type)
-{
-     try {
-   Class.forName("com.mysql.jdbc.Driver");
-      //here sonoo is database name, root is username and password
-      try (Connection con = DriverManager.getConnection(
-              "jdbc:mysql://localhost:3306/doanjava", "root", "")) {
-          //here sonoo is database name, root is username and password
-          Statement stmt = con.createStatement();
-          int rs = stmt.executeUpdate(req);
-          if(type.equals("Insert"))
-          {
-              if(rs > 0)
-                Lb_AccWarn.setText("Successfully Registered");
-              else Lb_AccWarn.setText("Registration Failed");
-          }
-          else if(type.equals("UpdateFunc"))
-          {
-              if(rs > 0)
-                Lb_EditWarn.setText("Func was changed");
-              else Lb_EditWarn.setText("Failed");
-          }
-          else if(type.equals("UpdatePass"))
-          {
-              if(rs > 0)
-                Lb_EditWarn.setText("Pass was changed");
-              else Lb_EditWarn.setText("Failed");
-          }
-          else if(type.equals("Delete"))
-          {
-               if(rs > 0)
-                 Lb_EditWarn.setText("Deleted Successfully");
-               else Lb_EditWarn.setText("Failed to delete");
-          }
-          
-      }
-  } catch (ClassNotFoundException | SQLException e) {
-   System.out.println(e);
-  }
-}
-
-public int Check_Login_Register(String UsrN,String Psw,String type)
-{
-     try {
-   Class.forName("com.mysql.jdbc.Driver");
-      //here sonoo is database name, root is username and password
-      try (Connection con = DriverManager.getConnection(
-              "jdbc:mysql://localhost:3306/doanjava", "root", "")) {
-          //here sonoo is database name, root is username and password
-          Statement stmt = con.createStatement();
-          ResultSet rs = stmt.executeQuery("select * from account");
-          
-          String Input_UsrN;
-          String Input_Psw;
-          String Type_Account = "Admin";
-          boolean Check_Exist = false;
-          while(rs.next())
-          {
-              Input_UsrN = rs.getString(2);
-              Input_Psw = rs.getString(3);
-              if(UsrN.equals(Input_UsrN))
-              {
-                  Check_Exist = true;
-                  if(Psw.equals(Input_Psw))
-                  {
-                      Lb_AccWarn.setText("Successfully");
-                      if(Type_Account.equals(rs.getString(4)))
-                      {
-                          if(type.equals("Login"))
-                          {
-                            
-                            Panel_Account.setVisible(false);
-                            Panel_AccEdit.setVisible(true);
-                            Panel_EditCommand.setVisible(true);
-                            Panel_EditPass.setVisible(true);
-                            Panel_AccTable.setVisible(true);
-                            RequestDTB("ListAccount", "select * from account");
-                          }
-                          else return 1; 
-                      }
-                      else 
-                      {
-                          if(type.equals("Login"))
-                          {
-                            Panel_Account.setVisible(false);
-                            Panel_AccEdit.setVisible(true);
-                            Panel_EditCommand.setVisible(false);
-                            Panel_EditPass.setVisible(true);
-                            Panel_AccTable.setVisible(false);
-                          }
-                          else return 1;
-                          
-                      }
-                      return 1;
-                  }
-                  else 
-                  {
-                      Lb_AccWarn.setText("Wrong password");
-                      RequestDTB("ListAccount", "select * from account");
-                      return 0;
-                  }
-                  
-              }
-          }    
-          
-              if(Check_Exist == false) 
-              {
-                  Lb_AccWarn.setText("Account is not exist");
-                  RequestDTB("ListAccount", "select * from account");
-                  return -1;
-              }
-      }
-  } catch (ClassNotFoundException | SQLException e) {
-   System.out.println(e);
-  }
-     return 0;
-}
 
 public String Get_Function(String ID)
 {
@@ -297,12 +253,20 @@ public String Get_Function(String ID)
         initComponents();
         Btn_Exit1.setVisible(false);
         
-        Panel_Inside.setVisible(false);
-        Panel_Outside.setVisible(true);
-        Panel_Account.setVisible(true);
+        Panel_Inside.setVisible(false); // Disable Panel Setting
+        Panel_Outside.setVisible(true); // Enable Panel Account
+        Panel_Account.setVisible(true); 
         Panel_AccEdit.setVisible(false);
         Panel_AccTable.setVisible(false);
   
+        // Event to get value when use select row in Account table
+        Table_Acc.getSelectionModel().addListSelectionListener((ListSelectionEvent lse) -> {
+            if(Table_Acc.getSelectedRow() >= 0)
+            {
+                TxF_EditID.setText(Table_Acc.getValueAt(Table_Acc.getSelectedRow(), 0) + "");
+            }
+        });
+        
     }
 
     /**
@@ -805,7 +769,7 @@ public String Get_Function(String ID)
             .addGroup(Panel_AccTableLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(Panel_AccTableLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 722, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
                     .addComponent(Btn_Refresh, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -865,22 +829,22 @@ public String Get_Function(String ID)
     private void Tgl_LED1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Tgl_LED1ActionPerformed
         String getBtnText = Tgl_LED1.getText();
         if(getBtnText.equals("ON"))
-        Insert_Update_Delete_DTB("Update devices set Status = 0 where Id = 1","Update");
-        else Insert_Update_Delete_DTB("Update devices set Status = 1 where Id = 1","Update");
+            DTBFunc.Insert_Update_Delete("Update devices set Status = 0 where Id = 1");
+        else DTBFunc.Insert_Update_Delete("Update devices set Status = 1 where Id = 1");
     }//GEN-LAST:event_Tgl_LED1ActionPerformed
 
     private void Tgl_LED2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Tgl_LED2ActionPerformed
         String getBtnText = Tgl_LED2.getText();
         if(getBtnText.equals("ON"))
-        Insert_Update_Delete_DTB("Update devices set Status = 0 where Id = 2","Update");
-        else Insert_Update_Delete_DTB("Update devices set Status = 1 where Id = 2","Update");
+            DTBFunc.Insert_Update_Delete("Update devices set Status = 0 where Id = 2");
+        else DTBFunc.Insert_Update_Delete("Update devices set Status = 1 where Id = 2");
     }//GEN-LAST:event_Tgl_LED2ActionPerformed
 
     private void Tgl_LED3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Tgl_LED3ActionPerformed
         String getBtnText = Tgl_LED3.getText();
         if(getBtnText.equals("ON"))
-        Insert_Update_Delete_DTB("Update devices set Status = 0 where Id = 3","Update");
-        else Insert_Update_Delete_DTB("Update devices set Status = 1 where Id = 3","Update");
+            DTBFunc.Insert_Update_Delete("Update devices set Status = 0 where Id = 3");
+        else DTBFunc.Insert_Update_Delete("Update devices set Status = 1 where Id = 3");
     }//GEN-LAST:event_Tgl_LED3ActionPerformed
 
     private void DatePicker_HisDHT22ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DatePicker_HisDHT22ActionPerformed
@@ -902,24 +866,62 @@ public String Get_Function(String ID)
     }//GEN-LAST:event_Btn_ListAllActionPerformed
 
     private void Btn_AccLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_AccLoginActionPerformed
-        Btn_Exit1.setVisible(true);    
+   
         String UsrName = TxF_AccUsrN.getText();
         String PassWord = TxF_AccPass.getText();
-        Check_Login_Register(UsrName, PassWord, "Login");
+        String GetnotiStr;
+        if(UsrName.length() > 0 && PassWord.length() > 0)
+        {
+            GetnotiStr = DTBFunc.Login_Register(UsrName, PassWord,"Login");
+            if(GetnotiStr.equals("Admin")) // If admin , display table account 
+            {   
+                Btn_Exit1.setVisible(true); 
+                Panel_Account.setVisible(false);
+                Panel_AccEdit.setVisible(true);
+                Panel_EditCommand.setVisible(true);
+                Panel_EditPass.setVisible(true);
+                Panel_AccTable.setVisible(true);
+                RequestDTB("ListAccount", "select * from account");
+            }
+            else if(GetnotiStr.equals("User")) // If user , hide table account
+            {   
+                Btn_Exit1.setVisible(true); 
+                Panel_Account.setVisible(false);
+                Panel_AccEdit.setVisible(true);
+                Panel_EditCommand.setVisible(false);
+                Panel_EditPass.setVisible(true);
+                Panel_AccTable.setVisible(false);
+            }
+            else if(GetnotiStr.equals("WrongPass"))
+                Lb_AccWarn.setText("Wrong Pass!!!");
+            else if(GetnotiStr.equals("NotExist"))
+                Lb_AccWarn.setText("Account not exist!!!");
+        }
+        else Lb_AccWarn.setText("Input is empty");
+        
+
 
     }//GEN-LAST:event_Btn_AccLoginActionPerformed
 
     private void Btn_AccRegActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_AccRegActionPerformed
+
         String UsrName = TxF_AccUsrN.getText();
         String PassWord = TxF_AccPass.getText();
+        String GetnotiStr;
         if(UsrName.length() > 0 && PassWord.length() > 0)
         {
+            GetnotiStr = DTBFunc.Login_Register(UsrName, PassWord,"Register");
             String Combine_Str = '\'' + UsrName + '\'' +','+ '\'' + PassWord + '\'' + ')';
-            if(Check_Login_Register(UsrName, PassWord, "Register") == -1)
-                Insert_Update_Delete_DTB("insert into account (Function,UserName,PassWord)values ('User'," + Combine_Str,"Insert");//'123456','User')");
-            else Lb_AccWarn.setText("Registration Failed - Account is existed");
+            if(GetnotiStr.equals("Successfully"))
+            {
+                if(DTBFunc.Insert_Update_Delete("insert into account (Function,UserName,PassWord)values ('User'," + Combine_Str) > 0)
+                   Lb_AccWarn.setText("Successfully Registered");         
+                else Lb_AccWarn.setText("Registration Failed");
+            }
+            else if(GetnotiStr.equals("Existed"))
+                Lb_AccWarn.setText("Registration Failed - Account is existed");
         }
-        else Lb_AccWarn.setText("Check input");
+        else Lb_AccWarn.setText("Input is empty");
         
     }//GEN-LAST:event_Btn_AccRegActionPerformed
 
@@ -949,12 +951,13 @@ public String Get_Function(String ID)
         Timer timer=new Timer(5000, (ActionEvent e) -> {
            RequestDTB("DHT","select * from dht22");
            RequestDTB("Control","select * from devices");
+           RequestDTB("AllTableDHT","select * from hisdht22");
         });
         timer.start();
     }//GEN-LAST:event_Btn_GoinsideActionPerformed
 
     private void Btn_OKEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_OKEditActionPerformed
-        
+            
         String Get_ID = TxF_EditID.getText();
         String Get_This_UserName = TxF_AccUsrN.getText();
         String Get_Combobox_Item = (String)Cbb_Command.getSelectedItem();
@@ -963,7 +966,11 @@ public String Get_Function(String ID)
         {   
             System.out.println("dELETE");
             if(Get_ID.length() > 0)
-                Insert_Update_Delete_DTB("DELETE FROM account WHERE id = " + Get_ID, "Delete");
+            {
+                if(DTBFunc.Insert_Update_Delete("DELETE FROM account WHERE id = " + Get_ID)>0)
+                    Lb_EditWarn.setText("Deleted Successfully");
+                else Lb_EditWarn.setText("Failed");
+            }
             else Lb_EditWarn.setText("ID is empty");
             
         }
@@ -973,18 +980,25 @@ public String Get_Function(String ID)
             String Confirm_Pass = TxF_ConfirmPass.getText();
             if(New_Pass.length() > 0 && Confirm_Pass.length() > 0 && Get_ID.length()>0)
             {
-                String Get_Function = Get_Function(Get_ID);
                 if(New_Pass.equals(Confirm_Pass))
-                    Insert_Update_Delete_DTB("Update account set PassWord = " + Confirm_Pass + " where Id = " + Get_ID, "UpdatePass");
+                {
+                    if(DTBFunc.Insert_Update_Delete("Update account set PassWord = " + Confirm_Pass + " where Id = " + Get_ID)>0)
+                        Lb_EditWarn.setText("Pass was changed");
+                    else Lb_EditWarn.setText("Failed");
+                }
                 else Lb_EditWarn.setText("Pass doesn't match");
             }
             else if (New_Pass.length() > 0 && Confirm_Pass.length() > 0)
             {
                 if(New_Pass.equals(Confirm_Pass))
-                    Insert_Update_Delete_DTB("Update account set PassWord = " + Confirm_Pass + " where UserName = " + '\'' + Get_This_UserName + '\'', "UpdatePass");
+                {
+                    if(DTBFunc.Insert_Update_Delete("Update account set PassWord = " + Confirm_Pass + " where UserName = " + '\'' + Get_This_UserName + '\'') > 0)
+                        Lb_EditWarn.setText("Pass was changed");
+                    else Lb_EditWarn.setText("Failed");
+                }
                 else Lb_EditWarn.setText("Pass doesn't match");
             }
-           else Lb_EditWarn.setText("Input is empty");
+            else Lb_EditWarn.setText("Input is empty");
             
         } 
         else if(Get_Combobox_Item.equals("Edit Function"))
@@ -993,9 +1007,17 @@ public String Get_Function(String ID)
             {
                 String Get_Function = Get_Function(Get_ID);
                 if(Get_Function.equals("Admin"))
-                    Insert_Update_Delete_DTB("Update account set Function = 'User' where Id = " + Get_ID, "UpdateFunc");
+                {
+                    if(DTBFunc.Insert_Update_Delete("Update account set Function = 'User' where Id = " + Get_ID)>0)
+                        Lb_EditWarn.setText("Func was changed");
+                    else Lb_EditWarn.setText("Failed");
+                }
                 else
-                    Insert_Update_Delete_DTB("Update account set Function = 'Admin' where Id = " + Get_ID, "UpdateFunc");
+                {
+                    if(DTBFunc.Insert_Update_Delete("Update account set Function = 'Admin' where Id = " + Get_ID)>0)
+                        Lb_EditWarn.setText("Func was changed");
+                    else Lb_EditWarn.setText("Failed");
+                }
             }
             else 
             {
@@ -1003,6 +1025,7 @@ public String Get_Function(String ID)
                 Lb_EditWarn.setText("ID is empty");
             }
         }
+        RequestDTB("ListAccount", "select * from account");
     }//GEN-LAST:event_Btn_OKEditActionPerformed
 
     private void Btn_RefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_RefreshActionPerformed
